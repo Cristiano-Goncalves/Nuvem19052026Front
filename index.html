@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Product CRUD</title>
+  <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+  <h1>Product CRUD</h1>
+
+  <form id="add-product-form">
+    <h2>Add Product</h2>
+
+    <label for="name">Name:</label>
+    <input type="text" id="name" name="name" required>
+
+    <label for="price">Price:</label>
+    <input type="number" id="price" name="price" required step="0.01">
+
+    <!-- CAMPO DESCRIÇÃO INCLUÍDO -->
+    <label for="description">Description:</label>
+    <textarea id="description" name="description"></textarea>
+
+    <!-- OBSERVAÇÃO SOBRE A FUNCIONALIDADE -->
+    <p>
+      Campo descrição ainda não possui tratamento/cadastro completo no front-end.
+      Funcionalidade deverá ser implementada futuramente.
+    </p>
+
+    <button type="submit">Add</button>
+  </form>
+
+  <ul id="products"></ul>
+
+  <script src="app.js"></script>
+  <script>
+    // Call fetchProducts() when the page loads
+    window.addEventListener('load', fetchProducts);
+  </script>
+</body>
+</html>
