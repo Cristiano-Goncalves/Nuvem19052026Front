@@ -1,6 +1,7 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
+  <meta charset="UTF-8">
   <title>Product CRUD</title>
   <link rel="stylesheet" type="text/css" href="style.css">
 </head>
@@ -16,24 +17,48 @@
     <label for="price">Price:</label>
     <input type="number" id="price" name="price" required step="0.01">
 
-    <!-- CAMPO DESCRIÇÃO INCLUÍDO -->
     <label for="description">Description:</label>
     <textarea id="description" name="description"></textarea>
-
-    <!-- OBSERVAÇÃO SOBRE A FUNCIONALIDADE -->
-    <p>
-      Campo descrição ainda não possui tratamento/cadastro completo no front-end.
-      Funcionalidade deverá ser implementada futuramente.
-    </p>
 
     <button type="submit">Add</button>
   </form>
 
+  <hr>
+
+  <form id="update-product-form">
+    <h2>Update Product</h2>
+    
+    <label for="update-id">ID:</label>
+    <input type="text" id="update-id" name="id" readonly>
+
+    <label for="update-name">Name:</label>
+    <input type="text" id="update-name" name="name" required>
+
+    <label for="update-price">Price:</label>
+    <input type="number" id="update-price" name="price" required step="0.01">
+
+    <label for="update-description">Description:</label>
+    <textarea id="update-description" name="description"></textarea>
+
+    <button type="submit">Update Product</button>
+  </form>
+
+  <hr>
+
+  <section id="search-section">
+    <h2>Search Product by ID</h2>
+    <input type="number" id="search-id" placeholder="Enter Product ID">
+    <button type="button" id="btn-search">Search</button>
+    <div id="search-result"></div>
+  </section>
+
+  <hr>
+
+  <h2>Product List</h2>
   <ul id="products"></ul>
 
   <script src="app.js"></script>
   <script>
-    // Call fetchProducts() when the page loads
     window.addEventListener('load', fetchProducts);
   </script>
 </body>
