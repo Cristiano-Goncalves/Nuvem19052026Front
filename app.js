@@ -133,12 +133,13 @@ if (btnSearch) {
 
       const product = await response.json();
       
-      // Renderiza os dados do objeto direto retornado pelo back-end corrigido
+      // ALTERAÇÃO AQUI: Como o seu index.html usa a div "searchResultDiv" para renderizar
+      // o resultado, nós injetamos o HTML direto nela, igualzinho você tinha feito antes!
       searchResultDiv.innerHTML = `
         <h3>Produto Encontrado</h3>
-        <p><strong>ID:</strong> ${product.id || 'N/A'}</p>
-        <p><strong>Nome:</strong> ${product.name || 'N/A'}</p>
-        <p><strong>Preço:</strong> R$ ${product.price || '0'}</p>
+        <p><strong>ID:</strong> ${product.id}</p>
+        <p><strong>Nome:</strong> ${product.name}</p>
+        <p><strong>Preço:</strong> R$ ${product.price}</p>
         <p><strong>Descrição:</strong> ${product.description || 'Sem descrição'}</p>
       `;
     } catch (error) {
