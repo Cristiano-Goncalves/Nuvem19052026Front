@@ -58,18 +58,25 @@ addProductForm.addEventListener('submit', async event => {
   const price = addProductForm.elements['price'].value;
   const description = addProductForm.elements['description'].value;
 
+  const resultado = await addProduct(name, price, description);
+  console.log("Resposta do servidor:", resultado);
+  
   await addProduct(name, price, description);
   addProductForm.reset();
   await fetchProducts();
 });
 
 async function addProduct(name, price, description) {
-  const response = await fetch(BASE_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, price, description })
-  });
-  return response.json();
+  try {
+    const response = await fetch(BASE_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, price, description })
+    });
+    return response.text(); // <-- Mudamos de .json() para .text()
+  } catch (error) {
+    console.error("Erro ao adicionar produto:", error);
+  }
 }
 
 updateProductForm.addEventListener('submit', async event => {
