@@ -2,64 +2,156 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Product CRUD</title>
-  <link rel="stylesheet" type="text/css" href="style.css">
+  <title>CRUD Produtos</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <h1>Product CRUD</h1>
+
+<header>
+  <h1>📦 Sistema de Gestão de Produtos</h1>
+
+  <button id="theme-toggle">
+    🌙 Modo Escuro
+  </button>
+</header>
+
+<section id="menu-principal">
+
+  <h2>Menu Principal</h2>
+
+  <button onclick="mostrarTela('add-section')">
+    1. Adicionar Produto
+  </button>
+
+  <button onclick="abrirAtualizacao()">
+    2. Atualizar Produto
+  </button>
+
+  <button onclick="mostrarTela('search-section')">
+    3. Pesquisar Produto por ID
+  </button>
+
+  <button onclick="abrirListagem()">
+    4. Listar Produtos
+  </button>
+
+  <button onclick="abrirExclusao()">
+    5. Excluir Produto
+  </button>
+
+</section>
+
+<section id="add-section" class="tela">
+
+  <h2>Adicionar Produto</h2>
 
   <form id="add-product-form">
-    <h2>Add Product</h2>
 
-    <label for="name">Name:</label>
-    <input type="text" id="name" name="name" required>
+    <label>Nome:</label>
+    <input type="text" id="name" required>
 
-    <label for="price">Price:</label>
-    <input type="number" id="price" name="price" required step="0.01">
+    <label>Preço:</label>
+    <input type="number" id="price" required>
 
-    <label for="description">Description:</label>
-    <textarea id="description" name="description"></textarea>
+    <label>Descrição:</label>
+    <textarea id="description"></textarea>
 
-    <button type="submit">Add</button>
+    <button type="submit">
+      Salvar
+    </button>
+
   </form>
 
-  <hr>
+  <button onclick="voltarMenu()">
+    Voltar ao Menu Principal
+  </button>
+
+</section>
+
+<section id="update-section" class="tela">
+
+  <h2>Atualizar Produto</h2>
+
+  <h3>Produtos Cadastrados</h3>
+
+  <ul id="update-products-list"></ul>
 
   <form id="update-product-form">
-    <h2>Update Product</h2>
-    
-    <label for="update-id">ID:</label>
-    <input type="text" id="update-id" name="id" readonly>
 
-    <label for="update-name">Name:</label>
-    <input type="text" id="update-name" name="name" required>
+    <label>ID</label>
+    <input type="text" id="update-id" readonly>
 
-    <label for="update-price">Price:</label>
-    <input type="number" id="update-price" name="price" required step="0.01">
+    <label>Nome</label>
+    <input type="text" id="update-name">
 
-    <label for="update-description">Description:</label>
-    <textarea id="update-description" name="description"></textarea>
+    <label>Preço</label>
+    <input type="number" id="update-price">
 
-    <button type="submit">Update Product</button>
+    <label>Descrição</label>
+    <textarea id="update-description"></textarea>
+
+    <button type="submit">
+      Atualizar
+    </button>
+
   </form>
 
-  <hr>
+  <button onclick="voltarMenu()">
+    Voltar ao Menu Principal
+  </button>
 
-  <section id="search-section">
-    <h2>Search Product by ID</h2>
-    <input type="number" id="search-id" placeholder="Enter Product ID">
-    <button type="button" id="btn-search">Search</button>
-    <div id="search-result"></div>
-  </section>
+</section>
 
-  <hr>
+<section id="search-section" class="tela">
 
-  <h2>Product List</h2>
+  <h2>Pesquisar Produto</h2>
+
+  <input
+    type="number"
+    id="search-id"
+    placeholder="Informe o ID">
+
+  <button id="btn-search">
+    Buscar
+  </button>
+
+  <div id="search-result"></div>
+
+  <button onclick="voltarMenu()">
+    Voltar ao Menu Principal
+  </button>
+
+</section>
+
+<section id="list-section" class="tela">
+
+  <h2>Produtos Cadastrados</h2>
+
   <ul id="products"></ul>
 
-  <script src="app.js"></script>
-  <script>
-    window.addEventListener('load', fetchProducts);
-  </script>
+  <button onclick="voltarMenu()">
+    Voltar ao Menu Principal
+  </button>
+
+</section>
+
+<section id="delete-section" class="tela">
+
+  <h2>Excluir Produto</h2>
+
+  <h3>Produtos Ativos</h3>
+
+  <ul id="delete-products-list"></ul>
+
+  <div id="delete-result"></div>
+
+  <button onclick="voltarMenu()">
+    Voltar ao Menu Principal
+  </button>
+
+</section>
+
+<script src="app.js"></script>
+
 </body>
 </html>
