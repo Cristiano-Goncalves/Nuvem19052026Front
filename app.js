@@ -1,86 +1,77 @@
 const productList = document.querySelector('#products');
 const addProductForm = document.querySelector('#add-product-form');
-
-// Seletores do formulário de Update
 const updateProductForm = document.querySelector('#update-product-form');
 const updateProductId = document.querySelector('#update-id');
 const updateProductName = document.querySelector('#update-name');
 const updateProductPrice = document.querySelector('#update-price');
-const updateProductDescription = document.querySelector('#update-description'); // Incluído
-
-// Seletores da Consulta por ID
+const updateProductDescription = document.querySelector('#update-description');
 const searchIdInput = document.querySelector('#search-id');
 const btnSearch = document.querySelector('#btn-search');
 const searchResultDiv = document.querySelector('#search-result');
+const deleteIdInput = document.querySelector('#delete-id');
+const btnDelete = document.querySelector('#btn-delete');
+const deleteResultDiv = document.querySelector('#delete-result');
 
 const BASE_URL = 'http://13.58.211.28:3000/products';
 
-// Function to fetch all products from the server
 async function fetchProducts() {
-  const response = await fetch(BASE_URL);
-  const products = await response.json();
+  try {
+    const response = await fetch(BASE_URL);
+    if (!response.ok) {
+      throw new Error('Erro ao carregar produtos');
+    }
+    const products = await response.json();
+    productList.innerHTML = '';
 
-  // Clear product list
-  productList.innerHTML = '';
+    products.forEach(product => {
+      const li = document.createElement('li');
+      li.innerHTML = `
+        <strong>ID:</strong> ${product.id}
+        |
+        <strong>${product.name}</strong>
+        -
+        R$ ${product.price}
+        |
+        <em>${product.description || 'Sem descrição'}</em>
+      `;
 
-  // Add each product to the list
-  products.forEach(product => {
-    const li = document.createElement('li');
-    // Exibe também a descrição na listagem se ela existir
-    li.innerHTML = `<strong>ID:</strong> ${product.id} | <strong>${product.name}</strong> - $${product.price} | <em>${product.description || 'No description'}</em> `;
+      const updateButton = document.createElement('button');
+      updateButton.innerHTML = 'Atualizar';
+      updateButton.addEventListener('click', () => {
+        updateProductId.value = product.id;
+        updateProductName.value = product.name;
+        updateProductPrice.value = product.price;
+        updateProductDescription.value = product.description || '';
+      });
 
-    // Add delete button for each product
-    const deleteButton = document.createElement('button');
-    deleteButton.innerHTML = 'Delete';
-    deleteButton.style.marginLeft = '10px';
-    deleteButton.addEventListener('click', async () => {
-      await deleteProduct(product.id);
-      await fetchProducts();
+      li.appendChild(updateButton);
+      productList.appendChild(li);
     });
-    li.appendChild(deleteButton);
-
-    // Add update button for each product
-    const updateButton = document.createElement('button');
-    updateButton.innerHTML = 'Update';
-    updateButton.style.marginLeft = '5px';
-    updateButton.addEventListener('click', () => {
-      // Preenche o formulário de update com os dados do produto clicado
-      updateProductId.value = product.id;
-      updateProductName.value = product.name;
-      updateProductPrice.value = product.price;
-      updateProductDescription.value = product.description || ''; // Preenche a descrição no update
-    });
-    li.appendChild(updateButton);
-
-    productList.appendChild(li);
-  });
+  } catch (error) {
+    console.error(error);
+  }
 }
 
-// Event listener for Add Product form submit button
 addProductForm.addEventListener('submit', async event => {
   event.preventDefault();
   const name = addProductForm.elements['name'].value;
   const price = addProductForm.elements['price'].value;
-  const description = addProductForm.elements['description'].value; // Campo descrição incluído (1,0 ponto)
-  
+  const description = addProductForm.elements['description'].value;
+
   await addProduct(name, price, description);
   addProductForm.reset();
   await fetchProducts();
 });
 
-// Function to add a new product
 async function addProduct(name, price, description) {
   const response = await fetch(BASE_URL, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ name, price, description }) // Enviando descrição para o banco
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, price, description })
   });
   return response.json();
 }
 
-// IMPLEMENTAR O BOTÃO UPDATE NO BANCO DE DADOS (1,0 ponto)
 updateProductForm.addEventListener('submit', async event => {
   event.preventDefault();
   const id = updateProductId.value;
@@ -89,7 +80,7 @@ updateProductForm.addEventListener('submit', async event => {
   const description = updateProductDescription.value;
 
   if (!id) {
-    alert('Please select a product from the list to update first.');
+    alert('Selecione um produto da lista para atualizar.');
     return;
   }
 
@@ -98,61 +89,211 @@ updateProductForm.addEventListener('submit', async event => {
   await fetchProducts();
 });
 
-// Função que faz a requisição PUT para o banco de dados
 async function updateProduct(id, name, price, description) {
   const response = await fetch(`${BASE_URL}/${id}`, {
-    method: 'PUT', // ou 'PATCH', dependendo de como seu backend foi estruturado
-    headers: {
-      'Content-Type': 'application/json'
-    },
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name, price, description })
   });
   return response.json();
 }
 
-// Function to delete a product
+btnDelete.addEventListener('click', async () => {
+  const id = deleteIdInput.value;
+  if (!id) {
+    deleteResultDiv.innerHTML = '<p>Informe um ID para exclusão.</p>';
+    return;
+  }
+
+  const confirmar = confirm(`Deseja realmente excluir o produto ${id}?`);
+  if (!confirmar) return;
+
+  try {
+    await deleteProduct(id);
+    deleteResultDiv.innerHTML = `<p>Produto ${id} excluído com sucesso.</p>`;
+    deleteIdInput.value = '';
+    await fetchProducts();
+  } catch (error) {
+    console.error(error);
+    deleteResultDiv.innerHTML = '<p>Erro ao excluir produto.</p>';
+  }
+});
+
 async function deleteProduct(id) {
-  const response = await fetch(`${BASE_URL}/` + id, {
+  const response = await fetch(`${BASE_URL}/${id}`, {
     method: 'DELETE',
-    headers: {
-      'Content-Type': 'application/json'
-    }
+    headers: { 'Content-Type': 'application/json' }
   });
+  if (!response.ok) {
+    throw new Error('Erro ao excluir produto');
+  }
   return response.json();
 }
 
-// IMPLEMENTAR A TELA DE CONSULTA PELO ID (0,5 pontos)
 btnSearch.addEventListener('click', async () => {
   const id = searchIdInput.value;
-  
   if (!id) {
-    searchResultDiv.innerHTML = '<p style="color: red;">Please enter an ID to search.</p>';
+    searchResultDiv.innerHTML = '<p>Informe um ID para pesquisa.</p>';
     return;
   }
 
   try {
     const response = await fetch(`${BASE_URL}/${id}`);
-    
     if (response.status === 404) {
-      searchResultDiv.innerHTML = `<p style="color: red;">Product with ID ${id} not found.</p>`;
+      searchResultDiv.innerHTML = `<p>Produto ${id} não encontrado.</p>`;
       return;
     }
 
     const product = await response.json();
     searchResultDiv.innerHTML = `
-      <div style="margin-top: 10px; padding: 10px; border: 1px solid #ccc; background-color: #f9f9f9;">
-        <h3>Product Found:</h3>
-        <p><strong>ID:</strong> ${product.id}</p>
-        <p><strong>Name:</strong> ${product.name}</p>
-        <p><strong>Price:</strong> $${product.price}</p>
-        <p><strong>Description:</strong> ${product.description || 'No description'}</p>
-      </div>
+      <h3>Produto Encontrado</h3>
+      <p><strong>ID:</strong> ${product.id}</p>
+      <p><strong>Nome:</strong> ${product.name}</p>
+      <p><strong>Preço:</strong> R$ ${product.price}</p>
+      <p><strong>Descrição:</strong> ${product.description || 'Sem descrição'}</p>
     `;
   } catch (error) {
     console.error(error);
-    searchResultDiv.innerHTML = '<p style="color: red;">Error searching for product.</p>';
+    searchResultDiv.innerHTML = '<p>Erro ao pesquisar produto.</p>';
   }
 });
 
-// Fetch all products on page load
-fetchProducts();
+window.addEventListener('load', fetchProducts);
+
+function ocultarTodasAsTelas() {
+  document.querySelectorAll('.tela').forEach(secao => {
+    secao.style.display = 'none';
+  });
+  document.getElementById('menu-principal').style.display = 'none';
+}
+
+function mostrarTela(id) {
+  ocultarTodasAsTelas();
+  document.getElementById(id).style.display = 'block';
+}
+
+function voltarMenu() {
+  ocultarTodasAsTelas();
+  document.getElementById('menu-principal').style.display = 'block';
+}
+
+async function abrirListagem() {
+  await fetchProducts();
+  mostrarTela('list-section');
+}
+
+async function abrirAtualizacao() {
+  await carregarProdutosAtualizacao();
+  mostrarTela('update-section');
+}
+
+async function abrirExclusao() {
+  await carregarProdutosExclusao();
+  mostrarTela('delete-section');
+}
+
+window.onload = () => {
+  voltarMenu();
+  fetchProducts();
+};
+
+const themeButton = document.getElementById('theme-toggle');
+if (themeButton) {
+  themeButton.addEventListener('click', () => {
+    document.body.classList.toggle('dark-mode');
+    if (document.body.classList.contains('dark-mode')) {
+      themeButton.innerHTML = '☀️ Modo Claro';
+    } else {
+      themeButton.innerHTML = '🌙 Modo Escuro';
+    }
+  });
+}
+
+async function carregarProdutosAtualizacao() {
+  try {
+    const response = await fetch(BASE_URL);
+    const products = await response.json();
+    const lista = document.getElementById('update-products-list');
+    lista.innerHTML = '';
+
+    products.forEach(product => {
+      const li = document.createElement('li');
+      const info = document.createElement('span');
+      info.innerHTML = `
+        <strong>ID:</strong> ${product.id}
+        |
+        <strong>${product.name}</strong>
+        |
+        R$ ${product.price}
+        |
+        <em>${product.description || 'Sem descrição'}</em>
+      `;
+
+      const botao = document.createElement('button');
+      botao.textContent = 'Selecionar';
+      botao.addEventListener('click', () => {
+        updateProductId.value = product.id;
+        updateProductName.value = product.name;
+        updateProductPrice.value = product.price;
+        updateProductDescription.value = product.description || '';
+
+        window.scrollTo({
+          top: document.getElementById('update-product-form').offsetTop - 20,
+          behavior: 'smooth'
+        });
+      });
+
+      li.appendChild(info);
+      li.appendChild(botao);
+      lista.appendChild(li);
+    });
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+async function carregarProdutosExclusao() {
+  try {
+    const response = await fetch(BASE_URL);
+    const products = await response.json();
+    const lista = document.getElementById('delete-products-list');
+    lista.innerHTML = '';
+
+    products.forEach(product => {
+      const li = document.createElement('li');
+      const info = document.createElement('span');
+      info.innerHTML = `
+        <strong>ID:</strong> ${product.id}
+        |
+        <strong>${product.name}</strong>
+        |
+        R$ ${product.price}
+        |
+        <em>${product.description || 'Sem descrição'}</em>
+      `;
+
+      const botao = document.createElement('button');
+      botao.textContent = 'Excluir';
+      botao.addEventListener('click', async () => {
+        const confirmar = confirm(`Deseja excluir o produto "${product.name}"?`);
+        if (!confirmar) return;
+
+        try {
+          await deleteProduct(product.id);
+          deleteResultDiv.innerHTML = `<p>Produto "${product.name}" excluído com sucesso.</p>`;
+          await carregarProdutosExclusao();
+          await fetchProducts();
+        } catch (error) {
+          console.error(error);
+          deleteResultDiv.innerHTML = '<p>Erro ao excluir produto.</p>';
+        }
+      });
+
+      li.appendChild(info);
+      li.appendChild(botao);
+      lista.appendChild(li);
+    });
+  } catch (error) {
+    console.error(error);
+  }
+}
