@@ -52,6 +52,7 @@ async function fetchProducts() {
   }
 }
 
+// CORREÇÃO AQUI: Removida a chamada duplicada e adicionado o redirecionamento automático
 addProductForm.addEventListener('submit', async event => {
   event.preventDefault();
   const name = addProductForm.elements['name'].value;
@@ -61,8 +62,8 @@ addProductForm.addEventListener('submit', async event => {
   const resultado = await addProduct(name, price, description);
   console.log("Resposta do servidor:", resultado);
   
-  await addProduct(name, price, description);
-  addProductForm.reset();
+  addProductForm.reset(); // Agora vai zerar perfeitamente!
+  voltarMenu();           // Retorna ao menu após salvar
   await fetchProducts();
 });
 
@@ -73,7 +74,7 @@ async function addProduct(name, price, description) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, price, description })
     });
-    return response.text(); // <-- Mudamos de .json() para .text()
+    return response.text(); // Lê como texto puro ("created!!") para não quebrar o JSON
   } catch (error) {
     console.error("Erro ao adicionar produto:", error);
   }
@@ -93,6 +94,7 @@ updateProductForm.addEventListener('submit', async event => {
 
   await updateProduct(id, name, price, description);
   updateProductForm.reset();
+  voltarMenu();
   await fetchProducts();
 });
 
@@ -105,26 +107,28 @@ async function updateProduct(id, name, price, description) {
   return response.json();
 }
 
-btnDelete.addEventListener('click', async () => {
-  const id = deleteIdInput.value;
-  if (!id) {
-    deleteResultDiv.innerHTML = '<p>Informe um ID para exclusão.</p>';
-    return;
-  }
+if (btnDelete) {
+  btnDelete.addEventListener('click', async () => {
+    const id = deleteIdInput.value;
+    if (!id) {
+      deleteResultDiv.innerHTML = '<p>Informe um ID para exclusão.</p>';
+      return;
+    }
 
-  const confirmar = confirm(`Deseja realmente excluir o produto ${id}?`);
-  if (!confirmar) return;
+    const confirmar = confirm(`Deseja realmente excluir o produto ${id}?`);
+    if (!confirmar) return;
 
-  try {
-    await deleteProduct(id);
-    deleteResultDiv.innerHTML = `<p>Produto ${id} excluído com sucesso.</p>`;
-    deleteIdInput.value = '';
-    await fetchProducts();
-  } catch (error) {
-    console.error(error);
-    deleteResultDiv.innerHTML = '<p>Erro ao excluir produto.</p>';
-  }
-});
+    try {
+      await deleteProduct(id);
+      deleteResultDiv.innerHTML = `<p>Produto ${id} excluído com sucesso.</p>`;
+      deleteIdInput.value = '';
+      await fetchProducts();
+    } catch (error) {
+      console.error(error);
+      deleteResultDiv.innerHTML = '<p>Erro ao excluir produto.</p>';
+    }
+  });
+}
 
 async function deleteProduct(id) {
   const response = await fetch(`${BASE_URL}/${id}`, {
@@ -137,33 +141,35 @@ async function deleteProduct(id) {
   return response.json();
 }
 
-btnSearch.addEventListener('click', async () => {
-  const id = searchIdInput.value;
-  if (!id) {
-    searchResultDiv.innerHTML = '<p>Informe um ID para pesquisa.</p>';
-    return;
-  }
-
-  try {
-    const response = await fetch(`${BASE_URL}/${id}`);
-    if (response.status === 404) {
-      searchResultDiv.innerHTML = `<p>Produto ${id} não encontrado.</p>`;
+if (btnSearch) {
+  btnSearch.addEventListener('click', async () => {
+    const id = searchIdInput.value;
+    if (!id) {
+      searchResultDiv.innerHTML = '<p>Informe um ID para pesquisa.</p>';
       return;
     }
 
-    const product = await response.json();
-    searchResultDiv.innerHTML = `
-      <h3>Produto Encontrado</h3>
-      <p><strong>ID:</strong> ${product.id}</p>
-      <p><strong>Nome:</strong> ${product.name}</p>
-      <p><strong>Preço:</strong> R$ ${product.price}</p>
-      <p><strong>Descrição:</strong> ${product.description || 'Sem descrição'}</p>
-    `;
-  } catch (error) {
-    console.error(error);
-    searchResultDiv.innerHTML = '<p>Erro ao pesquisar produto.</p>';
-  }
-});
+    try {
+      const response = await fetch(`${BASE_URL}/${id}`);
+      if (response.status === 404) {
+        searchResultDiv.innerHTML = `<p>Produto ${id} não encontrado.</p>`;
+        return;
+      }
+
+      const product = await response.json();
+      searchResultDiv.innerHTML = `
+        <h3>Produto Encontrado</h3>
+        <p><strong>ID:</strong> ${product.id}</p>
+        <p><strong>Nome:</strong> ${product.name}</p>
+        <p><strong>Preço:</strong> R$ ${product.price}</p>
+        <p><strong>Descrição:</strong> ${product.description || 'Sem descrição'}</p>
+      `;
+    } catch (error) {
+      console.error(error);
+      searchResultDiv.innerHTML = '<p>Erro ao pesquisar produto.</p>';
+    }
+  });
+}
 
 window.addEventListener('load', fetchProducts);
 
