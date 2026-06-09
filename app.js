@@ -12,10 +12,11 @@ const deleteIdInput = document.querySelector('#delete-id');
 const btnDelete = document.querySelector('#btn-delete');
 const deleteResultDiv = document.querySelector('#delete-result');
 
+// Garantindo a URL apontando para a rota em minúsculo do back-end estável
 const BASE_URL = 'http://13.58.211.28:3000/products';
 
 // ==========================================
-// 1. LISTAR PRODUTOS (GET)
+// 1. LISTAR PRODUTOS (GET) - Sem botão Atualizar
 // ==========================================
 async function fetchProducts() {
   try {
@@ -38,17 +39,7 @@ async function fetchProducts() {
         <em>${product.description || 'Sem descrição'}</em>
       `;
 
-      const updateButton = document.createElement('button');
-      updateButton.innerHTML = 'Atualizar';
-      updateButton.addEventListener('click', () => {
-        abrirAtualizacao();
-        updateProductId.value = product.id;
-        updateProductName.value = product.name;
-        updateProductPrice.value = product.price;
-        updateProductDescription.value = product.description || '';
-      });
-
-      li.appendChild(updateButton);
+      // O botão "Atualizar" foi removido daqui conforme solicitado!
       productList.appendChild(li);
     });
   } catch (error) {
@@ -80,7 +71,7 @@ async function addProduct(name, price, description) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, price, description })
     });
-    return await response.text(); // Blindado contra texto puro
+    return await response.text(); // Lendo como texto puro ("created!!")
   } catch (error) {
     console.error("Erro ao adicionar produto:", error);
   }
@@ -116,7 +107,7 @@ async function updateProduct(id, name, price, description) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, price, description })
     });
-    return await response.text(); // Blindado contra texto puro ("updated!!")
+    return await response.text(); // Lendo como texto puro ("updated!!")
   } catch (error) {
     console.error("Erro ao atualizar produto:", error);
   }
@@ -141,11 +132,13 @@ if (btnSearch) {
       }
 
       const product = await response.json();
+      
+      // Renderiza os dados do objeto direto retornado pelo back-end corrigido
       searchResultDiv.innerHTML = `
         <h3>Produto Encontrado</h3>
-        <p><strong>ID:</strong> ${product.id}</p>
-        <p><strong>Nome:</strong> ${product.name}</p>
-        <p><strong>Preço:</strong> R$ ${product.price}</p>
+        <p><strong>ID:</strong> ${product.id || 'N/A'}</p>
+        <p><strong>Nome:</strong> ${product.name || 'N/A'}</p>
+        <p><strong>Preço:</strong> R$ ${product.price || '0'}</p>
         <p><strong>Descrição:</strong> ${product.description || 'Sem descrição'}</p>
       `;
     } catch (error) {
@@ -160,13 +153,12 @@ if (btnSearch) {
 // ==========================================
 async function deleteProduct(id) {
   const response = await fetch(`${BASE_URL}/${id}`, {
-    method: 'DELETE',
-    headers: { 'Content-Type': 'application/json' }
+    method: 'DELETE'
   });
   if (!response.ok) {
     throw new Error('Erro ao excluir produto');
   }
-  return await response.text(); // Blindado caso o backend retorne texto puro na exclusão
+  return await response.text(); // Captura o texto puro "deleted!!" sem forçar JSON
 }
 
 // ==========================================
@@ -272,7 +264,7 @@ async function carregarProdutosExclusao() {
     products.forEach(product => {
       const li = document.createElement('li');
       const info = document.createElement('span');
-      info.innerHTML = `<strong>ID:</strong> ${product.id} | <strong>${product.name}</strong>`;
+      info.innerHTML = `<strong>ID:</strong> ${product.id} | <strong>${product.name}</strong> `;
 
       const botao = document.createElement('button');
       botao.textContent = 'Excluir';
