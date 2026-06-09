@@ -14,6 +14,9 @@ const deleteResultDiv = document.querySelector('#delete-result');
 
 const BASE_URL = 'http://13.58.211.28:3000/products';
 
+// ==========================================
+// 1. LISTAR PRODUTOS (GET)
+// ==========================================
 async function fetchProducts() {
   try {
     const response = await fetch(BASE_URL);
@@ -38,6 +41,7 @@ async function fetchProducts() {
       const updateButton = document.createElement('button');
       updateButton.innerHTML = 'Atualizar';
       updateButton.addEventListener('click', () => {
+        abrirAtualizacao();
         updateProductId.value = product.id;
         updateProductName.value = product.name;
         updateProductPrice.value = product.price;
@@ -48,11 +52,13 @@ async function fetchProducts() {
       productList.appendChild(li);
     });
   } catch (error) {
-    console.error(error);
+    console.error('Erro na listagem:', error);
   }
 }
 
-// CORREÇÃO AQUI: Removida a chamada duplicada e adicionado o redirecionamento automático
+// ==========================================
+// 2. ADICIONAR PRODUTO (POST) - Requisito 1
+// ==========================================
 addProductForm.addEventListener('submit', async event => {
   event.preventDefault();
   const name = addProductForm.elements['name'].value;
@@ -60,10 +66,10 @@ addProductForm.addEventListener('submit', async event => {
   const description = addProductForm.elements['description'].value;
 
   const resultado = await addProduct(name, price, description);
-  console.log("Resposta do servidor:", resultado);
+  console.log("Resposta do servidor (Add):", resultado);
   
-  addProductForm.reset(); // Agora vai zerar perfeitamente!
-  voltarMenu();           // Retorna ao menu após salvar
+  addProductForm.reset(); 
+  voltarMenu();           
   await fetchProducts();
 });
 
@@ -74,12 +80,15 @@ async function addProduct(name, price, description) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, price, description })
     });
-    return response.text(); // Lê como texto puro ("created!!") para não quebrar o JSON
+    return await response.text(); // Blindado contra texto puro
   } catch (error) {
     console.error("Erro ao adicionar produto:", error);
   }
 }
 
+// ==========================================
+// 3. ATUALIZAR PRODUTO (PUT) - Requisito 2
+// ==========================================
 updateProductForm.addEventListener('submit', async event => {
   event.preventDefault();
   const id = updateProductId.value;
@@ -92,55 +101,30 @@ updateProductForm.addEventListener('submit', async event => {
     return;
   }
 
-  await updateProduct(id, name, price, description);
+  const resultado = await updateProduct(id, name, price, description);
+  console.log("Resposta do servidor (Update):", resultado);
+
   updateProductForm.reset();
   voltarMenu();
   await fetchProducts();
 });
 
 async function updateProduct(id, name, price, description) {
-  const response = await fetch(`${BASE_URL}/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, price, description })
-  });
-  return response.json();
-}
-
-if (btnDelete) {
-  btnDelete.addEventListener('click', async () => {
-    const id = deleteIdInput.value;
-    if (!id) {
-      deleteResultDiv.innerHTML = '<p>Informe um ID para exclusão.</p>';
-      return;
-    }
-
-    const confirmar = confirm(`Deseja realmente excluir o produto ${id}?`);
-    if (!confirmar) return;
-
-    try {
-      await deleteProduct(id);
-      deleteResultDiv.innerHTML = `<p>Produto ${id} excluído com sucesso.</p>`;
-      deleteIdInput.value = '';
-      await fetchProducts();
-    } catch (error) {
-      console.error(error);
-      deleteResultDiv.innerHTML = '<p>Erro ao excluir produto.</p>';
-    }
-  });
-}
-
-async function deleteProduct(id) {
-  const response = await fetch(`${BASE_URL}/${id}`, {
-    method: 'DELETE',
-    headers: { 'Content-Type': 'application/json' }
-  });
-  if (!response.ok) {
-    throw new Error('Erro ao excluir produto');
+  try {
+    const response = await fetch(`${BASE_URL}/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, price, description })
+    });
+    return await response.text(); // Blindado contra texto puro ("updated!!")
+  } catch (error) {
+    console.error("Erro ao atualizar produto:", error);
   }
-  return response.json();
 }
 
+// ==========================================
+// 4. PESQUISAR POR ID (GET) - Requisito 3
+// ==========================================
 if (btnSearch) {
   btnSearch.addEventListener('click', async () => {
     const id = searchIdInput.value;
@@ -165,14 +149,29 @@ if (btnSearch) {
         <p><strong>Descrição:</strong> ${product.description || 'Sem descrição'}</p>
       `;
     } catch (error) {
-      console.error(error);
-      searchResultDiv.innerHTML = '<p>Erro ao pesquisar produto.</p>';
+      console.error("Erro ao buscar produto:", error);
+      searchResultDiv.innerHTML = '<p>Erro ao pesquisar produto. Verifique se o ID existe.</p>';
     }
   });
 }
 
-window.addEventListener('load', fetchProducts);
+// ==========================================
+// 5. EXCLUIR PRODUTO (DELETE)
+// ==========================================
+async function deleteProduct(id) {
+  const response = await fetch(`${BASE_URL}/${id}`, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' }
+  });
+  if (!response.ok) {
+    throw new Error('Erro ao excluir produto');
+  }
+  return await response.text(); // Blindado caso o backend retorne texto puro na exclusão
+}
 
+// ==========================================
+// NAVEGAÇÃO DE TELAS (SINGLE PAGE APPLICATION)
+// ==========================================
 function ocultarTodasAsTelas() {
   document.querySelectorAll('.tela').forEach(secao => {
     secao.style.display = 'none';
@@ -205,10 +204,13 @@ async function abrirExclusao() {
   mostrarTela('delete-section');
 }
 
-window.onload = () => {
+// ==========================================
+// INICIALIZAÇÃO DA PÁGINA
+// ==========================================
+window.addEventListener('load', () => {
   voltarMenu();
   fetchProducts();
-};
+});
 
 const themeButton = document.getElementById('theme-toggle');
 if (themeButton) {
@@ -222,6 +224,9 @@ if (themeButton) {
   });
 }
 
+// ==========================================
+// CARREGADORES AUXILIARES DE INTERFACE
+// ==========================================
 async function carregarProdutosAtualizacao() {
   try {
     const response = await fetch(BASE_URL);
@@ -232,15 +237,7 @@ async function carregarProdutosAtualizacao() {
     products.forEach(product => {
       const li = document.createElement('li');
       const info = document.createElement('span');
-      info.innerHTML = `
-        <strong>ID:</strong> ${product.id}
-        |
-        <strong>${product.name}</strong>
-        |
-        R$ ${product.price}
-        |
-        <em>${product.description || 'Sem descrição'}</em>
-      `;
+      info.innerHTML = `<strong>ID:</strong> ${product.id} | <strong>${product.name}</strong> | R$ ${product.price}`;
 
       const botao = document.createElement('button');
       botao.textContent = 'Selecionar';
@@ -275,15 +272,7 @@ async function carregarProdutosExclusao() {
     products.forEach(product => {
       const li = document.createElement('li');
       const info = document.createElement('span');
-      info.innerHTML = `
-        <strong>ID:</strong> ${product.id}
-        |
-        <strong>${product.name}</strong>
-        |
-        R$ ${product.price}
-        |
-        <em>${product.description || 'Sem descrição'}</em>
-      `;
+      info.innerHTML = `<strong>ID:</strong> ${product.id} | <strong>${product.name}</strong>`;
 
       const botao = document.createElement('button');
       botao.textContent = 'Excluir';
@@ -292,7 +281,8 @@ async function carregarProdutosExclusao() {
         if (!confirmar) return;
 
         try {
-          await deleteProduct(product.id);
+          const resExclusao = await deleteProduct(product.id);
+          console.log("Resposta do servidor (Delete):", resExclusao);
           deleteResultDiv.innerHTML = `<p>Produto "${product.name}" excluído com sucesso.</p>`;
           await carregarProdutosExclusao();
           await fetchProducts();
